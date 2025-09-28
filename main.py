@@ -4,34 +4,100 @@ import mysql.connector
 from typing import List
 from dotenv import load_dotenv
 import os
+from fastapi.middleware.cors import CORSMiddleware
 
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
 
 # Leer las variables de entorno
-MYSQL_HOST = os.getenv('MYSQL_HOST', 'localhost')  # Si no existe, usar 'localhost'
-MYSQL_PORT = os.getenv('MYSQL_PORT', '3307')      # Si no existe, usar 3307
-MYSQL_USER = os.getenv('MYSQL_USER', 'root')      # Si no existe, usar 'root'
-MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD', 'root')  # Si no existe, usar 'root'
-MYSQL_DATABASE = os.getenv('MYSQL_DATABASE', 'ms1_db')  # Nombre de la base de datos
+MYSQL_HOST = os.getenv('MYSQL_HOST', 'localhost')  
+MYSQL_PORT = os.getenv('MYSQL_PORT', '3307')      
+MYSQL_USER = os.getenv('MYSQL_USER', 'root')      
+MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD', 'root')  
+MYSQL_DATABASE = os.getenv('MYSQL_DATABASE', 'ms1_db')  
 
-FASTAPI_PORT = os.getenv('FASTAPI_PORT', '8000')  # Si no existe, usar 8000
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', '*')  # Cargar los orígenes permitidos desde .env
 
-# Conexión a la base de datos
+# Función para obtener la conexión a la base de datos
 def get_db_connection():
     return mysql.connector.connect(
         host=MYSQL_HOST,
         user=MYSQL_USER,
         password=MYSQL_PASSWORD,
         database=MYSQL_DATABASE,
-        port=MYSQL_PORT  # Puerto donde está MySQL (lo configuramos en el contenedor)
+        port=MYSQL_PORT
     )
 
-# Crear la instacia de FastAPI con título, descipción y versión personalizada
+# Función para crear la base de datos si no existe
+def create_database_if_not_exists():
+    try:
+        conn = mysql.connector.connect(
+            host=MYSQL_HOST,
+            user=MYSQL_USER,
+            password=MYSQL_PASSWORD,
+            port=MYSQL_PORT
+        )
+        cursor = conn.cursor()
+        cursor.execute(f"CREATE DATABASE IF NOT EXISTS {MYSQL_DATABASE};")
+        cursor.close()
+        conn.close()
+    except mysql.connector.Error as e:
+        print(f"Error al crear la base de datos: {e}")
+
+# Función para crear las tablas si no existen
+def create_tables_if_not_exists():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Crear la tabla de usuarios
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS usuarios (
+                id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+                nombre VARCHAR(100),
+                correo VARCHAR(100) UNIQUE,
+                contraseña VARCHAR(255),
+                telefono VARCHAR(15)
+            );
+        """)
+
+        # Crear la tabla de direcciones
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS direcciones (
+                id_direccion INT AUTO_INCREMENT PRIMARY KEY,
+                id_usuario INT,
+                direccion VARCHAR(255),
+                ciudad VARCHAR(100),
+                codigo_postal VARCHAR(10),
+                FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
+            );
+        """)
+
+        cursor.close()
+        conn.close()
+    except mysql.connector.Error as e:
+        print(f"Error al crear las tablas: {e}")
+
+# Crear la instancia de FastAPI
 app = FastAPI(
     title = "API de Gestión de Usuarios",
-    description = "Esta API permite gestionar usuarios y derecciones.",
+    description = "Esta API permite gestionar usuarios y direcciones.",
     version="1.0.0"
+)
+
+# Configurar el middleware CORS para permitir orígenes configurados en el .env
+if CORS_ALLOWED_ORIGINS == '*':
+    allowed_origins = ["*"]  # Permitir todos los orígenes
+else:
+    allowed_origins = CORS_ALLOWED_ORIGINS.split(",")  # Convertir la cadena en una lista
+
+# Agregar el middleware CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,  # Usar los orígenes cargados desde el .env
+    allow_credentials=True,
+    allow_methods=["*"],  # Permitir todos los métodos HTTP
+    allow_headers=["*"],  # Permitir todos los encabezados
 )
 
 # Pydantic models para validar datos
@@ -46,6 +112,12 @@ class Direccion(BaseModel):
     direccion: str
     ciudad: str
     codigo_postal: str
+
+# Evento de inicio de FastAPI para asegurarse de que la base de datos y tablas están disponibles
+@app.on_event("startup")
+async def startup():
+    create_database_if_not_exists()  # Crear la base de datos si no existe
+    create_tables_if_not_exists()    # Crear las tablas si no existen
 
 # Endpoints de Usuarios
 
