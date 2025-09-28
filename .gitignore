@@ -1,0 +1,49 @@
+# Ignorar el entorno virtual
+.env
+.venv/
+venv/
+env/
+env.bak/
+venv.bak/
+
+# Archivos de configuración de IDEs
+.vscode/
+.idea/
+
+# Archivos y directorios generados por Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.db
+
+# Archivos de configuración de MySQL
+*.sql
+*.sql.gz
+
+# Archivos de logs
+*.log
+
+# Archivos de configuración de Docker
+*.dockerfile
+Dockerfile*
+docker-compose*.yml
+
+# Ignorar archivos temporales
+*.swp
+*.swo
+*.bak
+
+# Directorios de caché de paquetes
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Archivos de configuración de pytest
+.cache/
+*.cover
+
+# Otros archivos que no deben ser versionados
+*.env
+*.envrc
+
