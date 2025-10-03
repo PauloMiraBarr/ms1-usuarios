@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import mysql.connector
 from typing import List
 from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
 import os
 
 # Cargar las variables de entorno desde el archivo .env
@@ -17,6 +18,8 @@ MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD', 'root')  # Si no existe, usar 'root
 MYSQL_DATABASE = os.getenv('MYSQL_DATABASE', 'ms1_db')  # Nombre de la base de datos
 
 FASTAPI_PORT = os.getenv('FASTAPI_PORT', '8000')  # Si no existe, usar 8000
+
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', '*')
 
 # Conexión a la base de datos
 def get_db_connection():
@@ -36,6 +39,19 @@ app = FastAPI(
     title = "API de Gestión de Usuarios",
     description = "Esta API permite gestionar usuarios y derecciones.",
     version="1.0.0"
+)
+
+if CORS_ALLOWED_ORIGINS == '*':
+    allowed_origins = ["*"]
+else:
+    allowed_origins = CORS_ALLOWED_ORIGINS.split(",")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"], 
 )
 
 # Pydantic models para validar datos
@@ -72,8 +88,8 @@ class DireccionResponse(BaseModel):
 
 
 # Endpoint de prueba
-@app.get("/home")
-def home():
+@app.get("/health")
+def health():
     return {"message": "¡Backend funcionando correctamente!"}
 
 
