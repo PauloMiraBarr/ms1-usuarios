@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "e9b21f22-aafc-4517-a9c0-eb66d9c925b5",
-		"name": "ms1-endpoints-p",
+		"name": "ms1-endpoints",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "43481753",
 		"_collection_link": "https://paulo-3457731.postman.co/workspace/PostmanCollectionHackathon1~441b2e86-7985-4eff-ad96-b407ef8cfa60/collection/43481753-e9b21f22-aafc-4517-a9c0-eb66d9c925b5?action=share&source=collection_link&creator=43481753"
