@@ -69,7 +69,7 @@ class DireccionResponse(BaseModel):
 
 - **Healthcheck**
 
-`GET /home`: Devuelve un mensaje y código 200 indicando que el backend está activo.
+`GET /health`: Devuelve un mensaje y código 200 indicando que el backend está activo.
 
 - **Autenticación**
 
