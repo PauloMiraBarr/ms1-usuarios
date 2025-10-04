@@ -34,12 +34,77 @@ def get_db_connection():
     except mysql.connector.Error as err:
         raise HTTPException(status_code=500, detail=f"Error al conectar con la base de datos: {err}")
 
+
 # Crear la instacia de FastAPI con título, descipción y versión personalizada
 app = FastAPI(
     title = "API de Gestión de Usuarios",
     description = "Esta API permite gestionar usuarios y derecciones.",
     version="1.0.0"
 )
+
+
+
+# Creación de los esquemas y tablas para el microservicio 1 ----
+
+# Función para crear la base de datos si no existe
+def create_database_if_not_exists():
+    try:
+        conn = mysql.connector.connect(
+            host=MYSQL_HOST,
+            user=MYSQL_USER,
+            password=MYSQL_PASSWORD,
+            port=MYSQL_PORT
+        )
+        cursor = conn.cursor()
+        cursor.execute(f"CREATE DATABASE IF NOT EXISTS {MYSQL_DATABASE};")
+        cursor.close()
+        conn.close()
+    except mysql.connector.Error as e:
+        print(f"Error al crear la base de datos: {e}")
+
+# Función para crear las tablas si no existen
+def create_tables_if_not_exists():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Crear la tabla de usuarios
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS usuarios (
+                id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+                nombre VARCHAR(100),
+                correo VARCHAR(100) UNIQUE,
+                contraseña VARCHAR(255),
+                telefono VARCHAR(15)
+            );
+        """)
+
+        # Crear la tabla de direcciones
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS direcciones (
+                id_direccion INT AUTO_INCREMENT PRIMARY KEY,
+                id_usuario INT,
+                direccion VARCHAR(255),
+                ciudad VARCHAR(100),
+                codigo_postal VARCHAR(10),
+                FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
+            );
+        """)
+
+        cursor.close()
+        conn.close()
+    except mysql.connector.Error as e:
+        print(f"Error al crear las tablas: {e}")
+
+# Evento de inicio de FastAPI para asegurarse de que la base de datos y tablas están disponibles
+@app.on_event("startup")
+async def startup():
+    create_database_if_not_exists()  # Crear la base de datos si no existe
+    create_tables_if_not_exists()    # Crear las tablas si no existen
+# --------------------------------------------------------------
+
+
+
 
 if CORS_ALLOWED_ORIGINS == '*':
     allowed_origins = ["*"]
