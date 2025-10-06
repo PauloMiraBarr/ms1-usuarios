@@ -27,6 +27,30 @@ Base de datos en **MySQL 8** con integridad referencial y eliminación en cascad
   * `direccion` (VARCHAR(255))
   * `ciudad` (VARCHAR(100))
   * `codigo_postal` (VARCHAR(10))
+ 
+#### Esquema Json
+
+**Usuarios**
+``` json
+{
+	"id_usuario": 1,
+	"nombre": "Pepito",
+	"correo": "peitos@mail.com",
+	"contraseña": "la_increible_contrasenha_secreta_pepil",
+	"telefono": 987654321
+}
+```
+
+**Direcciones**
+``` json
+{
+	"id_direccion": 1,
+	"id_usuario": 1,
+	"direccion": "Puente bello, 560",
+	"ciudad": "Lima",
+	"codigo_postal": "A4"
+}
+```
 
 #### **DTO's (Pydantic Models)**
 
